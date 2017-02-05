@@ -53,13 +53,20 @@
             
             var list = [];
             var cid = 0;
+            var url = 'http://shintech.ninja:8000/api/members';
             
             var debug = document.getElementsByClassName('debug')[0];
             var error = document.createElement('div');
             var table = document.createElement('table');
             var submitButton = document.querySelector('button[type="submit"]');
-            var addButton = document.getElementsByClassName('add')[0]  ;          
+            var addButton = document.getElementsByClassName('add')[0];          
             
+            error.className += 'error';
+            debug.style.display = 'block';
+            debug.appendChild(error);
+            debug.innerHTML += '<h3>Household</h3>';            
+            debug.appendChild(table);
+                        
             function validateAge(options){
                 if(options === ''){
                     alert('Please enter age...');
@@ -94,21 +101,10 @@
                 });
                 var child = document.getElementById("member" + options);
                 table.removeChild(child);
-            }            
+            }
             
-            error.className += 'error';
-            
-            debug.style.display = 'block';
-
-            debug.appendChild(error);
-            
-            debug.innerHTML += '<h3>Household</h3>';            
-            debug.appendChild(table);
-            
-            addButton.addEventListener('click', function(event){
+            function createMember(){
                 
-                event.preventDefault();
-
                 var age = document.getElementsByName('age')[0].value;
                 var relationship = document.getElementsByName('rel')[0].value;
                 var smoker = document.getElementsByName('smoker')[0].checked;
@@ -124,43 +120,49 @@
                 }
                 
                 list.push(member);
-                
+                createRow(attributes, member.cid);
+                cid ++;                
+    
+            }
+            
+            function createRow(attributes, cid){
+
                 var row = document.createElement('tr');
-                row.id = "member" + member.cid;
+                row.id = "member" + cid;
                 
-                attributes[2] = determineSmoker(attributes[2])
+                attributes[2] = determineSmoker(attributes[2]);
                 
                 attributes.forEach(function(attribute){
                     row.innerHTML += ('<td>' + attribute + "</td>");
                 });
                 
-                row.innerHTML += '<button name="' + member.cid + '" onClick="removeButton(this.name)">Remove</button>';
+                row.innerHTML += '<button name="' + cid + '" onClick="removeButton(this.name)">Remove</button>';
                 
                 table.appendChild(row);
-                
-                cid ++;
-                
+            }
+            
+            function xhr(options){
+                options.forEach(function(attribute) {
+                    var request = new XMLHttpRequest();
+                    request.open('POST', url, true);
+                    request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+                    request.send(JSON.stringify({age: attribute.age, relationship: attribute.relationship, smoker: attribute.smoker}));
+                });                
+            }            
+            
+            addButton.addEventListener('click', function(event){
+                event.preventDefault();
+                createMember();
             });
             
             submitButton.addEventListener('click', function(event){
-
                 event.preventDefault();
-
-                list.forEach(function(attribute) {
-                    var request = new XMLHttpRequest();
-                    request.open('POST', 'http://shintech.ninja:8000/api/members', true);
-                    request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-                    request.send(JSON.stringify({age: attribute.age, relationship: attribute.relationship, smoker: attribute.smoker}));
-                });
-                
+                xhr(list);
                 document.getElementsByClassName('error')[0].innerHTML = "Submitted " + list.length + " members to household...";
-                
                 list = [];
-                
                 while(table.hasChildNodes()){
                     table.removeChild(table.lastChild);
                 }
-                
             });
             
         </script>

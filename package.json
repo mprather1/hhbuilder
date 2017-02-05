@@ -4,8 +4,7 @@
   "description": "",
   "main": "",
   "scripts": {
-    "start": "NODE_ENV=development PORT=8000 TZ='America/Chicago' supervisor -q --ignore ./app,./test,webpack.config.js -e js node server.js",
-    "test": "NODE_ENV=test PORT=8000 TZ='America/Chicago' mocha -t 10000"
+    "start": "NODE_ENV=development PORT=8000 node server.js"
   },
   "repository": {
     "type": "git",

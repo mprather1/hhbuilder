@@ -1,23 +1,9 @@
-#Edit /etc/postgresql/9.4/main/pg_hba.conf 
+Express + PostgreSql
 
-local   all             postgres                                trust #peer
+1. psql -f db.sql -U postgres
+  Creates a development database: "hhbuilder_development"
+2. npm start
 
-#######################################################################
+HHBuilder code is located in index.html
 
-sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';"
-psql -f db.sql -U postgres
-
-#GET models
-curl http://127.0.0.1:8000/api/models
-
-#GET models/:id
-curl http://127.0.0.1:8000/api/models/:id
-
-#POST models
-curl -H "Content-Type: application/json" -X POST -d '{"name":"killbill"}' http://127.0.0.1:8000/api/models
-
-#PUT models
-curl -H "Content-Type: application/json" -X PUT -d '{"name":"Kill Bill"}' http://127.0.0.1:8000/api/models/2
-
-#DELETE models
-curl -X DELETE http://127.0.0.1:8000/api/models/1
+Depending on your environment, you may need to edit the url in the index.html file.
