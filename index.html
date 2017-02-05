@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Household builder</title>
+        <style>
+            .debug {
+                font-family: monospace;
+                border: 1px solid black;
+                padding: 10px;
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Household builder</h1>
+        <div class="builder">
+            <ol class="household"></ol>
+            <form>
+                <div>
+                    <label>Age
+                        <input type="text" name="age">
+                    </label>
+                </div>
+                <div>
+                    <label>Relationship
+                        <select name="rel">
+                            <option value="">---</option>
+                            <option value="self">Self</option>
+                            <option value="spouse">Spouse</option>
+                            <option value="child">Child</option>
+                            <option value="parent">Parent</option>
+                            <option value="grandparent">Grandparent</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </label>
+                </div>
+                <div>
+                    <label>Smoker?
+                        <input type="checkbox" name="smoker">
+                    </label>
+                </div>
+                <div>
+                    <button class="add">add</button>
+                </div>
+                <div>
+                    <button type="submit">submit</button>
+                </div>
+            </form>
+        </div>
+        <pre class="debug"></pre>
+        <script>
+            
+            var list = [];
+            var cid = 0;
+            
+            var debug = document.getElementsByClassName('debug')[0];
+            var error = document.createElement('div');
+            var table = document.createElement('table');
+            var submitButton = document.querySelector('button[type="submit"]');
+            var addButton = document.getElementsByClassName('add')[0]  ;          
+            
+            function validateAge(options){
+                if(options === ''){
+                    alert('Please enter age...');
+                } else if(typeof options !== "number" && (options % 1) !== 0){
+                    alert("Age must be a number...");
+                } else if(options < 0){
+                    alert("Age must be greater than 0...");
+                } else {
+                    return options;
+                }
+            }
+            
+            function validateRelationship(options){
+                if(options === ''){
+                    alert('Relationship is required...');
+                } else {
+                    return options;
+                }
+            }
+            
+            function determineSmoker(options){
+                if(options === true){
+                    return 'smoker';
+                } else {
+                    return'non-smoker';
+                }
+            }
+            
+            function removeButton(options){
+                list = list.filter(function(o){
+                    return o.cid != options;
+                });
+                var child = document.getElementById("member" + options);
+                table.removeChild(child);
+            }            
+            
+            error.className += 'error';
+            
+            debug.style.display = 'block';
+
+            debug.appendChild(error);
+            
+            debug.innerHTML += '<h3>Household</h3>';            
+            debug.appendChild(table);
+            
+            addButton.addEventListener('click', function(event){
+                
+                event.preventDefault();
+
+                var age = document.getElementsByName('age')[0].value;
+                var relationship = document.getElementsByName('rel')[0].value;
+                var smoker = document.getElementsByName('smoker')[0].checked;
+                var member = { cid: cid, age: age, relationship: relationship, smoker: smoker };
+                var attributes = [member.age, member.relationship, member.smoker]; 
+                
+                if(!validateAge(age)){
+                    return false;
+                } 
+                
+                if(!validateRelationship(relationship)){
+                    return false;
+                }
+                
+                list.push(member);
+                
+                var row = document.createElement('tr');
+                row.id = "member" + member.cid;
+                
+                attributes[2] = determineSmoker(attributes[2])
+                
+                attributes.forEach(function(attribute){
+                    row.innerHTML += ('<td>' + attribute + "</td>");
+                });
+                
+                row.innerHTML += '<button name="' + member.cid + '" onClick="removeButton(this.name)">Remove</button>';
+                
+                table.appendChild(row);
+                
+                cid ++;
+                
+            });
+            
+            submitButton.addEventListener('click', function(event){
+
+                event.preventDefault();
+
+                list.forEach(function(attribute) {
+                    var request = new XMLHttpRequest();
+                    request.open('POST', 'http://shintech.ninja:8000/api/members', true);
+                    request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+                    request.send(JSON.stringify({age: attribute.age, relationship: attribute.relationship, smoker: attribute.smoker}));
+                });
+                
+                document.getElementsByClassName('error')[0].innerHTML = "Submitted " + list.length + " members to household...";
+                
+                list = [];
+                
+                while(table.hasChildNodes()){
+                    table.removeChild(table.lastChild);
+                }
+                
+            });
+            
+        </script>
+    </body>
+</html>
